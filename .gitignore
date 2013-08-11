@@ -1,0 +1,6 @@
+*.o
+driver
+
+# generated
+*.cc
+*.hh

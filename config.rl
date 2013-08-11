@@ -1,6 +1,5 @@
 #include "Lexer.h"
 #include <iostream>
-#include <cstdlib>
 #include <cstring>
 
 using namespace config;
@@ -18,23 +17,39 @@ E = [Ee] S? D+;
 
 identifier = L(L|D)*;
 number = S? (D+ | D+ '.' D* | D* '.' D+) E?;
-comment = '#' (^'\n')* '\n';
+comment = '#' (^'\n')*;
 
 main := |*
 	identifier => {
-		std::cout << "I: " << std::string(ts, te) << std::endl;
+		lloc->step();
+		lloc->columns(te - ts);
+		lval->sval = strdup(ts, te);
 		tok = Parser::token::IDENTIFIER;
 		fbreak; 
 	};
 	number => {
-		std::cout << "N: " << atof(std::string(ts, te).c_str()) << std::endl;
+		lloc->step();	
+		lloc->columns(te - ts);
+		lval->dval = strtod(ts, te);
 		tok = Parser::token::NUMBER;
 		fbreak;
 	};
-	comment;
-	space;
+	comment {
+		lloc->step();
+		lloc->columns(te - ts);
+	};
+	[ \t\v\f\r]+ {
+		lloc->step();
+		lloc->columns(te - ts); 
+	};
+	[\n]+ => { 
+		lloc->step(); 
+		lloc->lines(te - ts); 
+	};
 	any => {
-		std::cout << "C: " << ts[0] << std::endl;
+		lloc->step();
+		lloc->columns(1);
+		lval->cval = ts[0];
 		tok = Parser::token::CHAR;
 		fbreak;
 	};
@@ -42,53 +57,24 @@ main := |*
 
 }%%
 
-Lexer::Lexer(std::istream &istream) : istream(istream)
+const std::string *Lexer::strdup(const char *p, const char *pe) {
+	strings.push_back(std::string(p, pe));
+	return &strings.back();
+}
+double Lexer::strtod(const char *p, const char *pe) {
+	return atof(std::string(p, pe).c_str());
+}
+
+Lexer::Lexer(std::istream &istream) : istream(istream), _buf(BUFSIZE), buf(&_buf[0])
 {
 	p = pe = buf;
 	eof = 0;
+	bufstart = 0;
 
 	%% write init;
 }
 
-void Lexer::fancy_debug() {
-	std::cerr << "buf:[";
-	for (int i = 0; i < BUFSIZE; i++)
-		if (isprint(buf[i]))
-			std::cerr << buf[i];
-		else
-			std::cerr << '.';
-	std::cerr << "]\n";
-
-	std::cerr << "p  : ";
-	for (int i = 0; i < p - buf; i++)
-		std::cerr << ' ';
-	std::cerr << "^\n";
-
-	std::cerr << "pe : ";
-	for (int i = 0; i < pe - buf; i++)
-		std::cerr << ' ';
-	std::cerr << "^\n";
-
-	std::cerr << "ts : ";
-	if (ts) {
-		for (int i = 0; i < ts - buf; i++)
-			std::cerr << ' ';
-		std::cerr << "^";
-	} else 
-		std::cerr << "null";
-	std::cerr << "\n";
-
-	std::cerr << "te : ";
-	if (ts) {
-		for (int i = 0; i < te - buf; i++)
-			std::cerr << ' ';
-		std::cerr << "^";
-	} else 
-		std::cerr << "null";
-	std::cerr << std::endl;
-}
-
-Parser::token_type Lexer::lex(Parser::semantic_type *yylval, Parser::location_type *yylloc) {
+Parser::token_type Lexer::lex(Parser::semantic_type *lval, Parser::location_type *lloc) {
 	Parser::token_type tok = Parser::token::END;
 
 	bool done = false;
@@ -96,13 +82,10 @@ Parser::token_type Lexer::lex(Parser::semantic_type *yylval, Parser::location_ty
 		if (p == pe) {
 			int space = BUFSIZE - (pe - buf);
 			if (space == 0) {
-				/* Check if we can free some space */
 				if (ts == 0) {
-					/* Nothing to preserve */
 					space = BUFSIZE;
 					p = pe = buf;
 				} else {
-					/* Move [ts, pe) to [buf, *) */
 					int preserve = pe - ts;
 					memmove(buf, ts, preserve);
 					pe = p = buf + preserve;
@@ -110,6 +93,7 @@ Parser::token_type Lexer::lex(Parser::semantic_type *yylval, Parser::location_ty
 					ts = buf;
 					space = BUFSIZE - preserve;
 				}
+				bufstart += space;
 				if (space == 0) {
 					std::cerr << "Internal buffer was overflowed. Input token was too long" << std::endl;
 					exit(1);
@@ -136,6 +120,6 @@ Parser::token_type Lexer::lex(Parser::semantic_type *yylval, Parser::location_ty
 		if (tok != Parser::token::END)
 			done = true;
 	}
-
+	
 	return tok;
 }

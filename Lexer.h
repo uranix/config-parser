@@ -3,6 +3,8 @@
 
 #include "config.tab.hh"
 #include <istream>
+#include <vector>
+#include <string>
 
 namespace config {
 
@@ -12,10 +14,14 @@ public:
 	Parser::token_type lex(Parser::semantic_type *yylval,
 		Parser::location_type *yylloc);
 private:
-	void fancy_debug();
+	const std::string *strdup(const char *p, const char *pe);
+	double strtod(const char *p, const char *pe);
 	std::istream &istream;
-	static const int BUFSIZE = 64;
-	char buf[BUFSIZE];
+	static const int BUFSIZE = 65536;
+	int bufstart;
+	std::vector<char> _buf;
+	std::vector<std::string> strings;
+	char * const buf;
 	char *p;
 	char *pe;
 	char *eof;

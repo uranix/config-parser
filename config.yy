@@ -21,7 +21,7 @@
 %union {
 	double dval;
 	char cval;
-	char *sval;
+	const std::string *sval;
 }
 
 %token<dval> NUMBER
