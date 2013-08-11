@@ -23,7 +23,7 @@ main := |*
 	identifier => {
 		lloc->step();
 		lloc->columns(te - ts);
-		lval->sval = strdup(ts, te);
+		lval->sval = new std::string(ts, te);
 		tok = Parser::token::IDENTIFIER;
 		fbreak; 
 	};
@@ -57,10 +57,6 @@ main := |*
 
 }%%
 
-const std::string *Lexer::strdup(const char *p, const char *pe) {
-	strings.push_back(std::string(p, pe));
-	return &strings.back();
-}
 double Lexer::strtod(const char *p, const char *pe) {
 	return atof(std::string(p, pe).c_str());
 }
@@ -117,6 +113,9 @@ Parser::token_type Lexer::lex(Parser::semantic_type *lval, Parser::location_type
 
 		if (tok != Parser::token::END)
 			done = true;
+		else
+			lloc->step();
+
 	}
 	
 	return tok;

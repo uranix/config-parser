@@ -15,8 +15,6 @@ public:
 		Parser::location_type *yylloc);
 private:
 	std::vector<std::string> strings;
-	const std::string *strdup(const char *p, const char *pe);
-
 	double strtod(const char *p, const char *pe);
 
 public:

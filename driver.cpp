@@ -1,37 +1,26 @@
 #include "Lexer.h"
 
 #include <iostream>
+#include <fstream>
 #include <cassert>
 
 using namespace config;
 
-int main() {
-	Lexer lexer(std::cin);
-//	Parser parser(lexer);
-
-//	parser.parse();
-	Parser::location_type lloc;
-	Parser::semantic_type lval;
-	Parser::token_type tok;
-
-	std::string fname("stdin");
-
-	lloc.begin.filename = lloc.end.filename = &fname;
-
-	while ((tok = lexer.lex(&lval, &lloc)) != Parser::token::END) {
-		switch (tok) {
-			case Parser::token::IDENTIFIER:
-				std::cout << lloc << ": identifier " << *lval.sval << std::endl;
-			break;
-			case Parser::token::NUMBER:
-				std::cout << lloc << ": number " << lval.dval << std::endl;
-			break;
-			case Parser::token::END: 
-				assert(false);
-			break;
-			default:
-				std::cout << lloc << ": symbol `" << static_cast<char>(tok) << "'" << std::endl;
-		}
+int main(int argc, char **argv) {
+	if (argc < 2) {
+		std::cerr << "USAGE: driver <config file>" << std::endl;
+		return 1;
 	}
+	std::fstream f(argv[1], std::ios::in);
+	Lexer lexer(f, argv[1]);
+
+	Object *config;
+	Parser parser(lexer, config);
+
+	if (parser.parse())
+		return 1;
+	config->print(std::cout);
+	delete config;
+
 	return 0;
 }

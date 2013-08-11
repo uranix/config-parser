@@ -1,10 +1,10 @@
 BISON=bison
 RAGEL=ragel
-CXX=c++
-CXXFLAGS=-O3 -Wall
+CXX=c++ -ferror-limit=5
+CXXFLAGS=-g -O0 -Wall
 
 %.tab.cc %.tab.hh : %.yy
-	${BISON} -d -L c++ $<
+	${BISON} -t -d -L c++ $<
 
 %.lex.cc : %.rl
 	${RAGEL} -G2 -o $@ $<
