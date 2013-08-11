@@ -38,7 +38,7 @@ main := |*
 		lloc->step();
 		lloc->columns(te - ts);
 	};
-	[ \t\v\f\r]+ {
+	[ ,;\t\v\f\r]+ {
 		lloc->step();
 		lloc->columns(te - ts); 
 	};
@@ -49,8 +49,8 @@ main := |*
 	any => {
 		lloc->step();
 		lloc->columns(1);
-		lval->cval = ts[0];
-		tok = Parser::token::CHAR;
+		unsigned char tc = *ts;
+		tok = static_cast<Parser::token_type>(tc);
 		fbreak;
 	};
 *|;
@@ -65,11 +65,10 @@ double Lexer::strtod(const char *p, const char *pe) {
 	return atof(std::string(p, pe).c_str());
 }
 
-Lexer::Lexer(std::istream &istream) : istream(istream), _buf(BUFSIZE), buf(&_buf[0])
+Lexer::Lexer(std::istream &istream, const std::string &fname) : fname(fname), istream(istream), _buf(BUFSIZE), buf(&_buf[0])
 {
 	p = pe = buf;
 	eof = 0;
-	bufstart = 0;
 
 	%% write init;
 }
@@ -93,7 +92,6 @@ Parser::token_type Lexer::lex(Parser::semantic_type *lval, Parser::location_type
 					ts = buf;
 					space = BUFSIZE - preserve;
 				}
-				bufstart += space;
 				if (space == 0) {
 					std::cerr << "Internal buffer was overflowed. Input token was too long" << std::endl;
 					exit(1);

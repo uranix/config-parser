@@ -4,6 +4,9 @@
 %define namespace config
 %define parser_class_name Parser
 %locations
+%initial-action {
+	@$.begin.filename = @$.end.filename = &lexer.fname;
+}
 %code requires {
 	namespace config { class Lexer; }
 }
@@ -20,23 +23,54 @@
 
 %union {
 	double dval;
-	char cval;
 	const std::string *sval;
 }
 
 %token<dval> NUMBER
 %token<sval> IDENTIFIER
-%token<cval> CHAR
 %token		END
 
 
 %parse-param { config::Lexer &lexer }
 %lex-param { config::Lexer &lexer }
 
+%start config
 %%
 
-statement	: IDENTIFIER { std::cout << "id" << std::endl; }
-			;
+value	
+		: NUMBER
+		| IDENTIFIER
+		| array
+		| object
+		;
+
+statement
+		: IDENTIFIER '=' value
+		;
+
+table
+		: statement
+		| table statement
+		;
+
+sequence
+		: value
+		| sequence value
+		;
+
+object	
+		: IDENTIFIER '{' '}'
+		| IDENTIFIER '{' table '}'
+		;
+
+array	: '[' ']'
+		| '[' table ']'
+		| '[' sequence ']'
+		;
+
+config	
+		: table
+		;
 
 %%
 

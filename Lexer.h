@@ -10,17 +10,22 @@ namespace config {
 
 class Lexer {
 public:
-	Lexer(std::istream &stream);
+	Lexer(std::istream &stream, const std::string &fname = "stdin");
 	Parser::token_type lex(Parser::semantic_type *yylval,
 		Parser::location_type *yylloc);
 private:
-	const std::string *strdup(const char *p, const char *pe);
-	double strtod(const char *p, const char *pe);
-	std::istream &istream;
-	static const int BUFSIZE = 65536;
-	int bufstart;
-	std::vector<char> _buf;
 	std::vector<std::string> strings;
+	const std::string *strdup(const char *p, const char *pe);
+
+	double strtod(const char *p, const char *pe);
+
+public:
+	std::string fname;
+private:
+	std::istream &istream;
+	static const int BUFSIZE = 0x2000;
+	std::vector<char> _buf;
+
 	char * const buf;
 	char *p;
 	char *pe;
