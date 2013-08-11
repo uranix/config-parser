@@ -27,7 +27,7 @@
 %token<dval> NUMBER
 %token<sval> IDENTIFIER
 %token<cval> CHAR
-
+%token		END
 
 
 %parse-param { config::Lexer &lexer }
@@ -39,3 +39,7 @@ statement	: IDENTIFIER { std::cout << "id" << std::endl; }
 			;
 
 %%
+
+void config::Parser::error(const config::location &lloc, const std::string &msg) {
+	std::cerr << "Parse error at " << lloc << ": " << msg << std::endl;
+}
