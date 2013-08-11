@@ -1,7 +1,7 @@
 BISON=bison
 RAGEL=ragel
-CXX=c++ -ferror-limit=5
-CXXFLAGS=-g -O0 -Wall
+CXX=clang++ -ferror-limit=5
+CXXFLAGS=-g -O2 -Wall
 
 %.tab.cc %.tab.hh : %.yy
 	${BISON} -t -d -L c++ $<
@@ -21,6 +21,6 @@ lexer: config.lex.o
 driver: parser lexer driver.o
 	${CXX} -o $@ config.tab.o config.lex.o driver.o
 
-config.tab.cc :: Lexer.h
-
-config.lex.cc :: Lexer.h
+config.tab.o :: config.yy Lexer.h config.tab.hh Value.h
+config.lex.o :: config.rl config.yy Lexer.h config.tab.hh Value.h
+config.tab.o :: config.yy Lexer.h config.tab.hh Value.h

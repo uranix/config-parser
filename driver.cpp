@@ -19,7 +19,10 @@ int main(int argc, char **argv) {
 
 	if (parser.parse())
 		return 1;
+
 	config->print(std::cout);
+	std::cout << std::endl;
+
 	delete config;
 
 	return 0;

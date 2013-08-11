@@ -98,7 +98,7 @@ struct Object : public Map {
 
 	virtual std::ostream &print(std::ostream &o) const {
 		o << type << " {\n";
-		return print_table(o, true) << "}\n";
+		return print_table(o, true) << "}";
 	}
 };
 

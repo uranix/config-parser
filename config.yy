@@ -85,7 +85,7 @@ array
 		;
 
 config
-		: table				{ config = new Object("config", $1); }
+		: table				{ config = new Object("Config", $1); }
 		;
 
 %%
